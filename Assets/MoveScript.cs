@@ -42,9 +42,9 @@ public class MoveScript : MonoBehaviour
         grounded = AmGrounded();
         animator.SetBool("Grounded", grounded);
         
-        if(grounded)
+        if(!grounded)
         {
-            jumpsLeft = currentNumJumps;
+            AirControl();
         }
         
         if(Input.GetButtonDown("Jump"))
@@ -68,13 +68,8 @@ public class MoveScript : MonoBehaviour
         }
 
         animator.SetFloat("z", Mathf.Lerp(animator.GetFloat("z"),Vector3.Distance(transform.position + movement * 3, transform.position), 0.1f));
-
-        if (!grounded)
-        {
-            AirControl();
-        }
-
-        GetComponent<Rigidbody>().AddForce(Vector3.down * gravity);
+        
+            GetComponent<Rigidbody>().AddForce(Vector3.down * gravity);
     }
 
     void AirControl()
@@ -93,7 +88,7 @@ public class MoveScript : MonoBehaviour
         if(CanJump())
         {
             animator.SetTrigger("JumpTrigger");
-            GetComponent<Rigidbody>().AddForce((Vector3.up * jumpForce * (jumpsLeft < numJumps ? doubleJumpMultiplier : 1f)) + transform.forward * Input.GetAxis("Vertical") * 2);
+            GetComponent<Rigidbody>().AddForce((Vector3.up * jumpForce * (jumpsLeft < numJumps ? doubleJumpMultiplier : 1f)) + transform.forward * Input.GetAxis("Vertical") * 2, ForceMode.Impulse);
             jumpsLeft--;
         }
     }
@@ -105,7 +100,15 @@ public class MoveScript : MonoBehaviour
 
     bool CanJump()
     {
-        return jumpsLeft > 0 && (AmGrounded() || animator.GetCurrentAnimatorStateInfo(0).IsName("Falling"));
+        if( jumpsLeft == numJumps && AmGrounded() && animator.GetCurrentAnimatorStateInfo(0).IsName("Movement"))
+        {
+            return true;
+        }
+        else if(jumpsLeft > 0 && animator.GetCurrentAnimatorStateInfo(0).IsName("Falling"))
+        {
+            return true;
+        }
+            return false;
     }
 
     public void IncreaseSpeed(float speedPercent, float duration)
@@ -164,5 +167,10 @@ public class MoveScript : MonoBehaviour
                 currentNumJumps = numJumps;
                 break;
         }
+    }
+
+    public void ResetJumps()
+    {
+        jumpsLeft = currentNumJumps;
     }
 }

@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnableMoveControl : StateMachineBehaviour
+public class SetNotLanded : StateMachineBehaviour
 {
     // OnStateEnter is called when a transition starts and the state machine starts to evaluate this state
     override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-        animator.GetComponentInParent<MoveScript>().ResetJumps();
-        animator.applyRootMotion = true;
+        animator.SetBool("Landed", false);    
     }
 
     // OnStateUpdate is called on each Update frame between OnStateEnter and OnStateExit callbacks

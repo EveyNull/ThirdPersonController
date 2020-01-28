@@ -10258,12 +10258,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animator: {fileID: 0}
-  jumpForce: 680
+  jumpForce: 20
   moveSpeedPercent: 1
-  gravity: 6
-  numJumps: 1
+  gravity: 25
+  numJumps: 2
   doubleJumpMultiplier: 1.5
-  airControl: 2
+  airControl: 5
   speedParticles: {fileID: 982382924}
   jumpParticles: {fileID: 425467555}
   speedTimer: {fileID: 5914208}
