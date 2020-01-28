@@ -21,6 +21,13 @@ public class CameraMoveScript : MonoBehaviour
         transform.position = targetFollow.position - offset;
 
         transform.Translate(-Vector3.right * Input.GetAxis("AimHorizontal") * Time.deltaTime * cameraRotateSpeed);
+
+        float vertMove = Input.GetAxis("AimVertical");
+        bool allowMove = (transform.position.y - targetFollow.position.y <= 5 || vertMove <= 0) && (transform.position.y - targetFollow.position.y >= -2 || vertMove >= 0);
+        if (allowMove)
+        {
+            transform.Translate(0f, vertMove * Time.deltaTime * cameraRotateSpeed, 0f);
+        }
         offset = targetFollow.position - transform.position;
 
         transform.LookAt(targetFollow);
