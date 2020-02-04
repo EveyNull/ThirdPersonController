@@ -34,9 +34,9 @@ public class CameraMoveScript : MonoBehaviour
 
         RaycastHit hit;
 
-        if(Physics.Raycast(targetFollow.position, -transform.forward, out hit))
+        if(Physics.Raycast(targetFollow.position, -transform.forward, out hit, Vector3.Distance(targetFollow.position, transform.position)))
         {
-            transform.position = Vector3.Lerp(transform.position, hit.point, Time.deltaTime);
+            transform.position = hit.point;
         }
     }
 }

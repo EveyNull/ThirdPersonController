@@ -18,6 +18,8 @@ public class MoveScript : MonoBehaviour
     public float doubleJumpMultiplier = 1.5f;
     public float airControl = 5f;
 
+    public bool allowMovement = true;
+
     public ParticleSystem speedParticles;
     public ParticleSystem jumpParticles;
 
@@ -25,7 +27,6 @@ public class MoveScript : MonoBehaviour
     public Image jumpTimer;
 
     private float currentMoveSpeed;
-    [SerializeField]
     private bool grounded = false;
     private int currentNumJumps;
     private int jumpsLeft;
@@ -56,39 +57,39 @@ public class MoveScript : MonoBehaviour
         {
             AirControl();
         }
-        
-        if(Input.GetButtonDown("Jump"))
+
+        Vector3 movement = Vector3.zero;
+        if (allowMovement)
         {
-            Jump();
+            movement = new Vector3(Input.GetAxis("Horizontal"), 0f, Input.GetAxis("Vertical"));
+            if (Input.GetButtonDown("AttackL"))
+            {
+                animator.SetTrigger("AttackTrigger");
+            }
+            if (Input.GetButtonDown("Jump"))
+            {
+                Jump();
+            }
+
+            if (movement == Vector3.zero && !Input.GetButtonDown("Jump") && Mathf.Abs(rigidbody.velocity.y) < 0.01f && grounded)
+            {
+                rigidbody.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
+            }
+            else
+            {
+                rigidbody.constraints = RigidbodyConstraints.FreezeRotation;
+            }
+
+            if (movement != Vector3.zero)
+            {
+                transform.rotation = Quaternion.Slerp(transform.rotation,
+                    new Quaternion(transform.rotation.x, Camera.main.transform.rotation.y, transform.rotation.z, Camera.main.transform.rotation.w)
+                    * Quaternion.LookRotation(movement), 0.1f);
+            }
         }
+        animator.SetFloat("z", Mathf.Lerp(animator.GetFloat("z"), Vector3.Distance(transform.position + movement * 3, transform.position), 0.1f));
 
-        if(Input.GetButtonDown("AttackL"))
-        {
-            animator.SetTrigger("AttackTrigger");
-        }
-
-
-        Vector3 movement = new Vector3(Input.GetAxis("Horizontal"), 0f, Input.GetAxis("Vertical"));
-
-        if (movement == Vector3.zero && !Input.GetButtonDown("Jump") && Mathf.Abs(rigidbody.velocity.y) < 0.01f && grounded)
-        {
-            rigidbody.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
-        }
-        else
-        {
-            rigidbody.constraints = RigidbodyConstraints.FreezeRotation;
-        }
-
-        if (movement != Vector3.zero)
-        {
-            transform.rotation = Quaternion.Slerp(transform.rotation, 
-                new Quaternion(transform.rotation.x, Camera.main.transform.rotation.y, transform.rotation.z, Camera.main.transform.rotation.w)
-                * Quaternion.LookRotation(movement), 0.1f);
-        }
-
-        animator.SetFloat("z", Mathf.Lerp(animator.GetFloat("z"),Vector3.Distance(transform.position + movement * 3, transform.position), 0.1f));
-        
-        if(rigidbody.velocity.y < 0)
+        if (rigidbody.velocity.y < 0)
         {
             rigidbody.velocity += Vector3.up * -gravity * (fallMultiplier - 1) * Time.deltaTime;
         }
