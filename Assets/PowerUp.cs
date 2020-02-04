@@ -7,7 +7,14 @@ public class PowerUp : MonoBehaviour
     public float duration = 10f;
     protected virtual void OnTriggerEnter(Collider other)
     {
-        Destroy(gameObject);
+        if (other.GetComponent<MoveScript>())
+        {
+            Destroy(gameObject);
+        }
     }
 
+    private void Update()
+    {
+        
+    }
 }

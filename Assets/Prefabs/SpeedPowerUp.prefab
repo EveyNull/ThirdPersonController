@@ -4747,7 +4747,6 @@ GameObject:
   - component: {fileID: 61952820804728897}
   - component: {fileID: 61952820791319681}
   - component: {fileID: 61952820805859969}
-  - component: {fileID: 61952820797608353}
   m_Layer: 0
   m_Name: PowerUp
   m_TagString: Untagged
@@ -4828,20 +4827,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!114 &61952820797608353
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 61952820803658819}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8d81cc4a7694b6548b26e04b8efd1b3d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  rotationSpeed: 65
-  reverse: 0
 --- !u!1 &61952820803658821
 GameObject:
   m_ObjectHideFlags: 0
@@ -4853,6 +4838,7 @@ GameObject:
   - component: {fileID: 61952820803434597}
   - component: {fileID: 61952820902421709}
   - component: {fileID: 4030076224473808872}
+  - component: {fileID: 673821914719848393}
   m_Layer: 0
   m_Name: SpeedPowerUp
   m_TagString: Untagged
@@ -4903,6 +4889,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 908aa1080ae4b5d4397965ea3fd96534, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  duration: 10
+  speedIncrease: 2
+--- !u!114 &673821914719848393
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 61952820803658821}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8d81cc4a7694b6548b26e04b8efd1b3d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rotationSpeed: 65
+  bobSpeed: 2
 --- !u!1 &61952820803658823
 GameObject:
   m_ObjectHideFlags: 0
@@ -4941,11 +4943,11 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 61952820803658823}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 9
   m_Type: 2
   m_Color: {r: 1, g: 0.5377282, b: 0.36764705, a: 1}
-  m_Intensity: 0.75
+  m_Intensity: 0.1
   m_Range: 4.4537983
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -4990,7 +4992,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 1.06e-42, y: 1.7415508e+19, z: 1.06e-42, w: 4e-45}
+  m_BoundingSphereOverride: {x: 3e-45, y: 0, z: 0, w: 1e-45}
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
@@ -5006,7 +5008,6 @@ GameObject:
   - component: {fileID: 61952820804728899}
   - component: {fileID: 61952820791319683}
   - component: {fileID: 61952820805859971}
-  - component: {fileID: 61952820797608355}
   m_Layer: 0
   m_Name: InnerPowerUp
   m_TagString: Untagged
@@ -5087,17 +5088,3 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!114 &61952820797608355
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 61952820803658825}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8d81cc4a7694b6548b26e04b8efd1b3d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  rotationSpeed: 65
-  reverse: 1

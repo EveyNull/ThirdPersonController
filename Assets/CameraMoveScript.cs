@@ -23,7 +23,7 @@ public class CameraMoveScript : MonoBehaviour
         transform.Translate(-Vector3.right * Input.GetAxis("AimHorizontal") * Time.deltaTime * cameraRotateSpeed);
 
         float vertMove = Input.GetAxis("AimVertical");
-        bool allowMove = (transform.position.y - targetFollow.position.y <= 2 || vertMove <= 0) && (transform.position.y - targetFollow.position.y >= -2 || vertMove >= 0);
+        bool allowMove = (transform.position.y - targetFollow.position.y <= 4 || vertMove <= 0) && (transform.position.y - targetFollow.position.y >= -2 || vertMove >= 0);
         if (allowMove)
         {
             transform.Translate(0f, vertMove * Time.deltaTime * cameraRotateSpeed, 0f);
@@ -31,5 +31,12 @@ public class CameraMoveScript : MonoBehaviour
         offset = targetFollow.position - transform.position;
 
         transform.LookAt(targetFollow);
+
+        RaycastHit hit;
+
+        if(Physics.Raycast(targetFollow.position, -transform.forward, out hit))
+        {
+            transform.position = Vector3.Lerp(transform.position, hit.point, Time.deltaTime);
+        }
     }
 }

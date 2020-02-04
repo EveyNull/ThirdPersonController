@@ -6,7 +6,12 @@ using UnityEngine.UI;
 public class MoveScript : MonoBehaviour
 {
     public Animator animator;
+    public new Rigidbody rigidbody;
+
     public float jumpForce = 500f;
+    public float fallMultiplier = 2.5f;
+    public float lowJumpMultiplier = 2f;
+
     public float moveSpeedPercent = 1f;
     public float gravity = 5f;
     public int numJumps = 1;
@@ -20,6 +25,7 @@ public class MoveScript : MonoBehaviour
     public Image jumpTimer;
 
     private float currentMoveSpeed;
+    [SerializeField]
     private bool grounded = false;
     private int currentNumJumps;
     private int jumpsLeft;
@@ -31,6 +37,9 @@ public class MoveScript : MonoBehaviour
         animator = GetComponent<Animator>();
         animator.SetBool("Moving", true);
         animator.speed = moveSpeedPercent;
+
+        rigidbody = GetComponent<Rigidbody>();
+
         currentNumJumps = numJumps;
         jumpsLeft = numJumps;
 
@@ -41,7 +50,8 @@ public class MoveScript : MonoBehaviour
     {
         grounded = AmGrounded();
         animator.SetBool("Grounded", grounded);
-        
+
+
         if(!grounded)
         {
             AirControl();
@@ -60,6 +70,15 @@ public class MoveScript : MonoBehaviour
 
         Vector3 movement = new Vector3(Input.GetAxis("Horizontal"), 0f, Input.GetAxis("Vertical"));
 
+        if (movement == Vector3.zero && !Input.GetButtonDown("Jump") && Mathf.Abs(rigidbody.velocity.y) < 0.01f && grounded)
+        {
+            rigidbody.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
+        }
+        else
+        {
+            rigidbody.constraints = RigidbodyConstraints.FreezeRotation;
+        }
+
         if (movement != Vector3.zero)
         {
             transform.rotation = Quaternion.Slerp(transform.rotation, 
@@ -69,7 +88,16 @@ public class MoveScript : MonoBehaviour
 
         animator.SetFloat("z", Mathf.Lerp(animator.GetFloat("z"),Vector3.Distance(transform.position + movement * 3, transform.position), 0.1f));
         
-            GetComponent<Rigidbody>().AddForce(Vector3.down * gravity);
+        if(rigidbody.velocity.y < 0)
+        {
+            rigidbody.velocity += Vector3.up * -gravity * (fallMultiplier - 1) * Time.deltaTime;
+        }
+        else if (rigidbody.velocity.y > 0 && !Input.GetButton("Jump"))
+        {
+            rigidbody.velocity += Vector3.up * -gravity * (lowJumpMultiplier - 1) * Time.deltaTime;
+        }
+
+        rigidbody.velocity += Vector3.up * -gravity *  Time.deltaTime;
     }
 
     void AirControl()
@@ -95,7 +123,7 @@ public class MoveScript : MonoBehaviour
 
     bool AmGrounded()
     {
-        return Physics.OverlapSphere(transform.position, 0.2f).Length > 1;
+        return Physics.OverlapBox(transform.position, GetComponent<BoxCollider>().size/2).Length > 2;
     }
 
     bool CanJump()
@@ -104,7 +132,7 @@ public class MoveScript : MonoBehaviour
         {
             return true;
         }
-        else if(jumpsLeft > 0 && animator.GetCurrentAnimatorStateInfo(0).IsName("Falling"))
+        else if(jumpsLeft > 0 && rigidbody.velocity.y < 5f)
         {
             return true;
         }
