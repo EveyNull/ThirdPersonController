@@ -25,8 +25,7 @@ public class MoveScript : MonoBehaviour
 
     public Image speedTimer;
     public Image jumpTimer;
-
-    private float currentMoveSpeed;
+    
     private bool grounded = false;
     private int currentNumJumps;
     private int jumpsLeft;
@@ -49,11 +48,10 @@ public class MoveScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
         grounded = AmGrounded();
-        animator.SetBool("Grounded", grounded);
 
-
-        if(!grounded)
+        if (!grounded)
         {
             AirControl();
         }
@@ -61,9 +59,17 @@ public class MoveScript : MonoBehaviour
         Vector3 movement = Vector3.zero;
         if (allowMovement)
         {
+            animator.SetBool("Grounded", grounded);
             movement = new Vector3(Input.GetAxis("Horizontal"), 0f, Input.GetAxis("Vertical"));
             if (Input.GetButtonDown("AttackL"))
             {
+                foreach(Collider collider in Physics.OverlapBox(GetComponent<CapsuleCollider>().bounds.center, GetComponent<CapsuleCollider>().bounds.extents))
+                {
+                    if(collider.GetComponent<Button>())
+                    {
+                        collider.GetComponent<Button>().HitButton(this);
+                    }
+                }
                 animator.SetTrigger("AttackTrigger");
             }
             if (Input.GetButtonDown("Jump"))
@@ -86,8 +92,9 @@ public class MoveScript : MonoBehaviour
                     new Quaternion(transform.rotation.x, Camera.main.transform.rotation.y, transform.rotation.z, Camera.main.transform.rotation.w)
                     * Quaternion.LookRotation(movement), 0.1f);
             }
+            animator.SetFloat("z", Mathf.Lerp(animator.GetFloat("z"), Vector3.Distance(transform.position + movement * 3, transform.position), 0.1f));
+            animator.SetFloat("y", GetComponent<Rigidbody>().velocity.y);
         }
-        animator.SetFloat("z", Mathf.Lerp(animator.GetFloat("z"), Vector3.Distance(transform.position + movement * 3, transform.position), 0.1f));
 
         if (rigidbody.velocity.y < 0)
         {
@@ -108,7 +115,6 @@ public class MoveScript : MonoBehaviour
 
     private void FixedUpdate()
     {
-        animator.SetFloat("y", GetComponent<Rigidbody>().velocity.y);
     }
 
 
@@ -201,5 +207,21 @@ public class MoveScript : MonoBehaviour
     public void ResetJumps()
     {
         jumpsLeft = currentNumJumps;
+    }
+
+    public void ForceMoveToLocation(Vector3 dest)
+    {
+        StartCoroutine(MoveToDest(dest, 1.5f));
+    }
+
+    IEnumerator MoveToDest(Vector3 dest, float speed)
+    {
+        animator.SetFloat("z", 0.7f);
+        while (Vector3.Distance(transform.position, dest) > 0.1f)
+        {
+            Vector3 newPos = Vector3.MoveTowards(transform.position, dest, Time.deltaTime * speed);
+            transform.position = newPos;
+            yield return 0;
+        }
     }
 }
