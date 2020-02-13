@@ -10,6 +10,7 @@ public class Button : MonoBehaviour
     public Transform doorLookAt;
     public GameObject buttonObject;
 
+    public Transform playerStandAt;
     public Transform playerMoveTo;
 
     public Transform buttonCameraPos;
@@ -17,9 +18,12 @@ public class Button : MonoBehaviour
 
     public float pauseBeforeDoor = 2f;
     public float pauseAfterDoor = 2f;
+
+    private bool wait = false;
     
     public void HitButton(MoveScript target)
     {
+        target.animator.ResetTrigger("AttackTrigger");
         StartCoroutine(DoorOpenCutscene(target));
     }
 
@@ -29,43 +33,48 @@ public class Button : MonoBehaviour
         target.animator.applyRootMotion = false;
         target.animator.SetFloat("z", 0f);
 
+        Camera camera = Camera.main;
 
+        camera.GetComponent<CameraMoveScript>().enabled = false;
+
+        StartCoroutine(MoveCamera(camera, buttonCameraPos));
+
+        wait = true;
+        StartCoroutine(RotateObjectToLookAt(target.transform, playerStandAt));
+        while(wait) yield return 0;
+
+        wait = true;
+        StartCoroutine(MovePlayerToPos(target, playerStandAt));
+        while(wait) yield return 0;
+
+        wait = true;
+        StartCoroutine(RotateObjectToLookAt(target.transform, transform));
+        while (wait) yield return 0;
+
+        target.animator.SetTrigger("AttackTrigger");
+        yield return new WaitForSeconds(0.2f);
         Vector3 insideWall = buttonObject.transform.localPosition + buttonObject.transform.forward;
-
         while (Vector3.Distance(buttonObject.transform.localPosition, insideWall) > 0.1f)
         {
             buttonObject.transform.localPosition = Vector3.MoveTowards(buttonObject.transform.localPosition, insideWall, Time.deltaTime);
             yield return 0;
         }
 
-        while (Vector3.Dot((playerMoveTo.position - target.transform.position).normalized, target.transform.forward) < 0.999f)
+        StartCoroutine(MoveCamera(camera, doorCameraPos));
+
+        wait = true;
+        StartCoroutine(RotateObjectToLookAt(target.transform, playerMoveTo));
+        while (wait) yield return 0;
+
+        wait = true;
+        StartCoroutine(MovePlayerToPos(target, playerMoveTo));
+        while (wait)
         {
-            Vector3 flatPlayerPos = target.transform.position;
-            flatPlayerPos.y = 0f;
-            Vector3 targetRotation = Vector3.RotateTowards(target.transform.forward, (playerMoveTo.position - flatPlayerPos), Time.deltaTime * 2f, 0f);
-            target.transform.rotation = Quaternion.LookRotation(targetRotation);
+            Debug.Log(Vector3.Distance(target.transform.position, playerMoveTo.position));
             yield return 0;
         }
 
-        target.ForceMoveToLocation(playerMoveTo.position);
-
-        while (Vector3.Distance(target.transform.position, playerMoveTo.position) > 0.1f)
-        {
-            yield return 0;
-        }
-
-        target.animator.SetFloat("z", 0f);
-
-        Vector3 doorFlatPos = doorLookAt.position;
-        doorFlatPos.y = 0f;
-        while (Vector3.Dot((doorFlatPos - target.transform.position).normalized, target.transform.forward) < 0.99f)
-        {
-            Vector3 flatPlayerPos = target.transform.position;
-            flatPlayerPos.y = 0f;
-            Vector3 targetRotation = Vector3.RotateTowards(target.transform.forward, (doorFlatPos - flatPlayerPos), Time.deltaTime * 2f, 0f);
-            target.transform.rotation = Quaternion.LookRotation(targetRotation);
-            yield return 0;
-        }
+        StartCoroutine(RotateObjectToLookAt(target.transform, doorLookAt));
 
         door.StartDoorOpen();
 
@@ -76,7 +85,45 @@ public class Button : MonoBehaviour
 
         target.allowMovement = true;
         target.animator.applyRootMotion = true;
+        camera.GetComponent<CameraMoveScript>().enabled = true;
 
         yield break;
+    }
+
+    IEnumerator MoveCamera(Camera camera, Transform target)
+    {
+        float startDistance = Vector3.Distance(camera.transform.position, target.position);
+        Quaternion startRot = camera.transform.rotation;
+        while (Vector3.Distance(camera.transform.position, target.position) > 0.2f)
+        {
+            camera.transform.position = Vector3.MoveTowards(camera.transform.position, target.transform.position, Time.deltaTime * 3);
+            camera.transform.rotation = Quaternion.Lerp(startRot, target.transform.rotation, 1 - Vector3.Distance(camera.transform.position, target.position) / startDistance);
+            yield return 0;
+        }
+    }
+
+    IEnumerator RotateObjectToLookAt(Transform target, Transform lookAt)
+    {
+        Vector3 lookAtFlat = lookAt.position;
+        lookAtFlat.y = 0f;
+        Vector3 targetFlat = target.position;
+        targetFlat.y = 0f;
+        while (Vector3.Dot((lookAtFlat - targetFlat).normalized, target.transform.forward) < 0.99f)
+        {
+            targetFlat = target.position;
+            targetFlat.y = 0f;
+            Vector3 targetRotation = Vector3.RotateTowards(target.transform.forward, (lookAtFlat - targetFlat), Time.deltaTime * 2f, 0f);
+            target.transform.rotation = Quaternion.LookRotation(targetRotation);
+            yield return 0;
+        }
+        wait = false;
+    }
+
+    IEnumerator MovePlayerToPos(MoveScript player, Transform pos)
+    {
+        player.ForceMoveToLocation(pos.position);
+        while(Vector3.Distance(player.transform.position, pos.position) > 0.1f) yield return 0;
+        player.animator.SetFloat("z", 0f);
+        wait = false;
     }
 }

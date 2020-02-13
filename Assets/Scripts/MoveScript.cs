@@ -63,14 +63,14 @@ public class MoveScript : MonoBehaviour
             movement = new Vector3(Input.GetAxis("Horizontal"), 0f, Input.GetAxis("Vertical"));
             if (Input.GetButtonDown("AttackL"))
             {
-                foreach(Collider collider in Physics.OverlapBox(GetComponent<CapsuleCollider>().bounds.center, GetComponent<CapsuleCollider>().bounds.extents))
+                animator.SetTrigger("AttackTrigger");
+                foreach (Collider collider in Physics.OverlapBox(GetComponent<CapsuleCollider>().bounds.center, GetComponent<CapsuleCollider>().bounds.extents))
                 {
                     if(collider.GetComponent<Button>())
                     {
                         collider.GetComponent<Button>().HitButton(this);
                     }
                 }
-                animator.SetTrigger("AttackTrigger");
             }
             if (Input.GetButtonDown("Jump"))
             {
