@@ -21,7 +21,7 @@ public class FourPartDoorOpen : MonoBehaviour
         {
             if(openTimer >= openDelay)
             {
-                Vector3 newPos = Vector3.MoveTowards(transform.position, transform.position + transform.right, Time.deltaTime * doorSpeed);
+                Vector3 newPos = Vector3.MoveTowards(transform.position, transform.position + transform.right, Time.deltaTime * doorSpeed * Mathf.Pow((1 + moved/2f),2));
                 if (moved < 2f)
                 {
                     moved += Vector3.Distance(transform.position, newPos);

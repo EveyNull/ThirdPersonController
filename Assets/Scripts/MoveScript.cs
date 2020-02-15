@@ -64,7 +64,7 @@ public class MoveScript : MonoBehaviour
             if (Input.GetButtonDown("AttackL"))
             {
                 animator.SetTrigger("AttackTrigger");
-                foreach (Collider collider in Physics.OverlapBox(GetComponent<CapsuleCollider>().bounds.center, GetComponent<CapsuleCollider>().bounds.extents))
+                foreach (Collider collider in Physics.OverlapBox(GetComponent<CapsuleCollider>().bounds.center, GetComponent<CapsuleCollider>().bounds.extents, transform.rotation, 1, QueryTriggerInteraction.Collide))
                 {
                     if(collider.GetComponent<Button>())
                     {
@@ -211,7 +211,7 @@ public class MoveScript : MonoBehaviour
 
     public void ForceMoveToLocation(Vector3 dest)
     {
-        StartCoroutine(MoveToDest(dest, 1.5f));
+        StartCoroutine(MoveToDest(dest, 1.7f));
     }
 
     IEnumerator MoveToDest(Vector3 dest, float speed)

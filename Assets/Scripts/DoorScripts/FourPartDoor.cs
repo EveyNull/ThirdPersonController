@@ -40,8 +40,8 @@ public class FourPartDoor : DoorOpener
     {
         opened = true;
         doorParts[0].StartOpening(0f, doorSpeed);
-        doorParts[1].StartOpening(0.25f, doorSpeed);
-        doorParts[2].StartOpening(0.5f, doorSpeed);
-        doorParts[3].StartOpening(0.75f, doorSpeed);
+        doorParts[1].StartOpening(0.5f, doorSpeed);
+        doorParts[2].StartOpening(1f, doorSpeed);
+        doorParts[3].StartOpening(1.5f, doorSpeed);
     }
 }
