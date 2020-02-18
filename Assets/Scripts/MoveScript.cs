@@ -66,7 +66,7 @@ public class MoveScript : MonoBehaviour
                 animator.SetTrigger("AttackTrigger");
                 foreach (Collider collider in Physics.OverlapBox(GetComponent<CapsuleCollider>().bounds.center, GetComponent<CapsuleCollider>().bounds.extents, transform.rotation, 1, QueryTriggerInteraction.Collide))
                 {
-                    if(collider.GetComponent<Button>())
+                    if(collider.GetComponent<Button>() && grounded)
                     {
                         collider.GetComponent<Button>().HitButton(this);
                     }
@@ -130,7 +130,7 @@ public class MoveScript : MonoBehaviour
 
     bool AmGrounded()
     {
-        return Physics.OverlapBox(transform.position, GetComponent<BoxCollider>().size/2).Length > 2;
+        return Physics.OverlapBox(transform.position, GetComponent<BoxCollider>().size/2, transform.rotation, 1, QueryTriggerInteraction.Ignore).Length > 2;
     }
 
     bool CanJump()
@@ -217,10 +217,20 @@ public class MoveScript : MonoBehaviour
     IEnumerator MoveToDest(Vector3 dest, float speed)
     {
         animator.SetFloat("z", 0.7f);
+        rigidbody.constraints = RigidbodyConstraints.FreezeRotation;
+        float timer = 0f;
         while (Vector3.Distance(transform.position, dest) > 0.1f)
         {
+            Vector3 destFlat = dest;
+            destFlat.y = transform.position.y;
+            transform.LookAt(destFlat);
             Vector3 newPos = Vector3.MoveTowards(transform.position, dest, Time.deltaTime * speed);
             transform.position = newPos;
+            if((timer += Time.deltaTime) > 3f)
+            {
+                transform.position = dest;
+                break;
+            }
             yield return 0;
         }
     }

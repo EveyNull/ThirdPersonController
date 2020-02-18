@@ -6,9 +6,8 @@ public class FourPartDoor : DoorOpener
 {
     private FourPartDoorOpen[] doorParts = new FourPartDoorOpen[4];
 
-    public float doorSpeed = 0.75f;
 
-    bool opened = false;
+    public float doorSpeed = 0.75f;
 
     // Start is called before the first frame update
     void Start()
@@ -21,27 +20,32 @@ public class FourPartDoor : DoorOpener
 
     private void Update()
     {
-        bool allDone = true;
-        foreach(FourPartDoorOpen doorPart in doorParts)
+        if (!complete)
         {
-            if(!doorPart.complete)
+            bool allDone = true;
+            foreach (FourPartDoorOpen doorPart in doorParts)
             {
-                allDone = false;
-                break;
+                if (!doorPart.complete)
+                {
+                    allDone = false;
+                    break;
+                }
             }
-        }
-        if(allDone)
-        {
-            complete = true;
+            if (allDone)
+            {
+                doorOpen.Stop();
+                jingle.Play();
+                complete = true;
+            }
         }
     }
 
     public override void StartDoorOpen()
     {
-        opened = true;
         doorParts[0].StartOpening(0f, doorSpeed);
         doorParts[1].StartOpening(0.5f, doorSpeed);
         doorParts[2].StartOpening(1f, doorSpeed);
         doorParts[3].StartOpening(1.5f, doorSpeed);
+        doorOpen.Play();
     }
 }

@@ -8,12 +8,10 @@ public class ThreePartDoor : DoorOpener
 
     public float doorSpeed = 0.75f;
 
-    bool opened = false;
-
     // Start is called before the first frame update
     void Start()
     {
-        for(int i = 0; i < transform.childCount; i++)
+        for(int i = 0; i < doorParts.Length; i++)
         {
             doorParts[i] = transform.GetChild(i).gameObject.AddComponent<ThreePartDoorOpen>();
         }
@@ -21,26 +19,32 @@ public class ThreePartDoor : DoorOpener
 
     private void Update()
     {
-        bool allDone = true;
-        foreach (ThreePartDoorOpen doorPart in doorParts)
+        if(!complete)
         {
-            if (!doorPart.complete)
+            bool allDone = true;
+            foreach (ThreePartDoorOpen doorPart in doorParts)
             {
-                allDone = false;
-                break;
+                if (!doorPart.complete)
+                {
+                    allDone = false;
+                    break;
+                }
             }
-        }
-        if (allDone)
-        {
-            complete = true;
+            if (allDone)
+            {
+                complete = true;
+                doorOpen.Stop();
+                jingle.Play();
+            }
+
         }
     }
 
     public override void StartDoorOpen()
     {
-        opened = true;
         doorParts[0].StartOpening(false, doorSpeed);
         doorParts[1].StartOpening(true, doorSpeed);
         doorParts[2].StartOpening(false, doorSpeed);
+        doorOpen.Play();
     }
 }
