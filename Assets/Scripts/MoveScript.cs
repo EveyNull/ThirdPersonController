@@ -19,6 +19,7 @@ public class MoveScript : MonoBehaviour
     public float airControl = 5f;
 
     public bool allowMovement = true;
+    public bool allowJump = true;
 
     public ParticleSystem speedParticles;
     public ParticleSystem jumpParticles;
@@ -72,7 +73,7 @@ public class MoveScript : MonoBehaviour
                     }
                 }
             }
-            if (Input.GetButtonDown("Jump"))
+            if (Input.GetButtonDown("Jump") && allowJump)
             {
                 Jump();
             }
