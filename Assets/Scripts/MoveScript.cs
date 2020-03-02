@@ -20,6 +20,7 @@ public class MoveScript : MonoBehaviour
 
     public bool allowMovement = true;
     public bool allowJump = true;
+    public bool turnToCamera = true;
 
     public ParticleSystem speedParticles;
     public ParticleSystem jumpParticles;
@@ -87,7 +88,7 @@ public class MoveScript : MonoBehaviour
                 rigidbody.constraints = RigidbodyConstraints.FreezeRotation;
             }
 
-            if (movement != Vector3.zero)
+            if (movement != Vector3.zero && turnToCamera)
             {
                 transform.rotation = Quaternion.Slerp(transform.rotation,
                     new Quaternion(transform.rotation.x, Camera.main.transform.rotation.y, transform.rotation.z, Camera.main.transform.rotation.w)
