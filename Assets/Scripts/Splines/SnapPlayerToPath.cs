@@ -4,10 +4,12 @@ using UnityEngine;
 
 public class SnapPlayerToPath : MonoBehaviour
 {
-    public bool cameraOnRight;
     public float moveSpeed;
+    public PathCreator camPath;
+
 
     private Path path;
+
     MoveScript player;
 
     float playerProgress;
@@ -41,65 +43,43 @@ public class SnapPlayerToPath : MonoBehaviour
 
     void CheckForPlayer()
     {
-        bool foundPlayer = false;
-        foreach (Collider collider in Physics.OverlapSphere(path.GetPointsInSegment(0)[0], 2f))
+        MoveScript foundPlayer;
+
+        if((foundPlayer = CheckPlayerColliding(path.GetPointsInSegment(0)[0])) != null)
         {
-            if (collider.GetComponent<MoveScript>() && !seenPlayer)
-            {
-                foundPlayer = true;
-                if (!seenPlayer)
-                {
-                    startAtStart = true;
-                    player = collider.GetComponent<MoveScript>();
-                    player.enabled = false;
-                    player.animator.applyRootMotion = false;
-                    playerProgress = 0f;
-                    Camera.main.GetComponent<AxisFollowCam>().enabled = false;
-                    seenPlayer = true;
-                    cameraOffSetInitial = Camera.main.transform.localPosition;
-
-                    Vector3 playerZeroY = player.transform.position;
-                    playerZeroY.y = 0f;
-
-                    Vector3 lookAtZeroY = path.GetPointsInSegment(0)[0];
-                    lookAtZeroY.y = 0f;
-
-                    player.transform.rotation = Quaternion.LookRotation(lookAtZeroY - playerZeroY);
-                }   
-            }
+            playerProgress = 0f;
         }
-    
-
-        foreach (Collider collider in Physics.OverlapSphere(path.GetPointsInSegment(path.NumSegments - 1)[3], 2f))
+        else if((foundPlayer = CheckPlayerColliding(path.GetPointsInSegment(path.NumSegments - 1)[3])) != null)
         {
-            if (collider.GetComponent<MoveScript>())
-            {
-                foundPlayer = true;
-                if (!seenPlayer)
-                {
-                    startAtStart = false;
-                    player = collider.GetComponent<MoveScript>();
-                    player.enabled = false;
-                    player.animator.applyRootMotion = false;
-                    playerProgress = path.NumSegments;
-                    Camera.main.GetComponentInParent<AxisFollowCam>().enabled = false;
-                    seenPlayer = true;
-                    cameraOffSetInitial = Camera.main.transform.localPosition;
-
-                    Vector3 playerZeroY = player.transform.position;
-                    playerZeroY.y = 0f;
-
-                    Vector3 lookAtZeroY = path.GetPointsInSegment(path.NumSegments - 1)[3];
-                    lookAtZeroY.y = 0f;
-
-                    player.transform.rotation = Quaternion.LookRotation(lookAtZeroY - playerZeroY);
-                }
-            }
+            playerProgress = path.NumSegments;
         }
-        if(!foundPlayer)
+        else
         {
             seenPlayer = false;
         }
+
+        if(foundPlayer != null && !seenPlayer)
+        {
+            player = foundPlayer;
+            player.turnToCamera = false;
+            Camera.main.GetComponentInParent<AxisFollowCam>().enabled = false;
+            cameraOffSetInitial = Camera.main.transform.localPosition;
+
+            seenPlayer = true;
+        }
+    }
+
+    MoveScript CheckPlayerColliding(Vector3 point)
+    {
+
+        foreach (Collider collider in Physics.OverlapSphere(point, 2f))
+        {
+            if (collider.GetComponent<MoveScript>())
+            {
+                return collider.GetComponent<MoveScript>();
+            }
+        }
+        return null;
     }
 
     void MovePlayer()
@@ -107,25 +87,27 @@ public class SnapPlayerToPath : MonoBehaviour
         Vector3 startPos = player.transform.position;
         horizontal = Input.GetAxis("Horizontal");
 
+        player.animator.applyRootMotion = false;
+
         if ((playerProgress >= path.NumSegments && horizontal < 0)
             || (playerProgress <= 0 && horizontal > 0))
         {
-            player.enabled = true;
+            player.turnToCamera = true;
             player.animator.applyRootMotion = true;
             player = null;
             Camera.main.GetComponentInParent<AxisFollowCam>().enabled = true;
-            Camera.main.transform.localPosition = cameraOffSetInitial;
             return;
         }
-        player.animator.SetFloat("z", Mathf.Abs(horizontal) * player.moveSpeedPercent);
-        int playerSegment = Mathf.CeilToInt(Mathf.Clamp(playerProgress, 0, path.NumSegments));
-        playerProgress -= horizontal * player.moveSpeedPercent * 0.01f;
-        Vector3[] pointsInSegment = path.GetPointsInSegment(playerSegment-1);
+        player.animator.SetFloat("z", Mathf.Abs(horizontal) * player.moveSpeedPercent * 1.5f);
+        int playerSegment = Mathf.CeilToInt(Mathf.Clamp(playerProgress, 0f, path.NumSegments));
+        playerProgress = Mathf.Clamp(playerProgress - horizontal * player.moveSpeedPercent * Time.deltaTime, 0f, path.NumSegments);
+        Vector3[] pointsInSegment = path.GetPointsInSegment(Mathf.Max(0, playerSegment - 1));
         
         Vector3 pos = CubicCurve
             (
-                pointsInSegment[0], pointsInSegment[1], pointsInSegment[2], pointsInSegment[3], playerProgress - (playerSegment - 1)
+                pointsInSegment[0], pointsInSegment[1], pointsInSegment[2], pointsInSegment[3], playerProgress - (Mathf.Max(0, playerSegment - 1))
             );
+        pos.y = player.transform.position.y;
 
         RaycastHit hit;
         Physics.Raycast(pos + Vector3.up * 0.1f, Vector3.down, out hit);
@@ -140,24 +122,20 @@ public class SnapPlayerToPath : MonoBehaviour
         {
             player.transform.rotation = Quaternion.LookRotation(lookAtZeroY - playerZeroY);
         }
-        player.transform.position = hit.point;
+        player.transform.position = pos;
     }
 
     private void FixedUpdate()
     {
         if (player != null)
         {
-            if (horizontal > 0)
-            {
-                cameraLookOnPlayerRight = true;
-            }
-            else if (horizontal < 0)
-            {
-                cameraLookOnPlayerRight = false;
-            }
+            float overallProgress = playerProgress / path.NumSegments;
+            float camProgress = overallProgress * camPath.path.NumSegments;
+            int camSegment = Mathf.CeilToInt(Mathf.Clamp(camProgress, 0, path.NumSegments));
 
-            Camera.main.transform.position = Vector3.MoveTowards(Camera.main.transform.position, Camera.main.GetComponentInParent<AxisFollowCam>().lookAt.position + (cameraLookOnPlayerRight ? player.transform.right * 5f : -player.transform.right * 5f), 0.1f);
-            Camera.main.transform.rotation = Quaternion.RotateTowards(Camera.main.transform.rotation, Quaternion.LookRotation(Camera.main.GetComponentInParent<AxisFollowCam>().lookAt.position - Camera.main.transform.position), 2f);
+            Vector3[] points = camPath.path.GetPointsInSegment(Mathf.Max(0, camSegment - 1));
+            Camera.main.transform.parent.position = Vector3.MoveTowards(Camera.main.transform.parent.position, CubicCurve(points[0], points[1], points[2], points[3], camProgress - (Mathf.Max(0, camSegment - 1))), 1);
+            Camera.main.transform.LookAt(Camera.main.GetComponentInParent<AxisFollowCam>().lookAt);
         }
     }
 
