@@ -79,15 +79,6 @@ public class MoveScript : MonoBehaviour
                 Jump();
             }
 
-            if (movement == Vector3.zero && !Input.GetButtonDown("Jump") && Mathf.Abs(rigidbody.velocity.y) < 0.01f && grounded)
-            {
-                rigidbody.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
-            }
-            else
-            {
-                rigidbody.constraints = RigidbodyConstraints.FreezeRotation;
-            }
-
             if (movement != Vector3.zero && turnToCamera)
             {
                 transform.rotation = Quaternion.Slerp(transform.rotation,

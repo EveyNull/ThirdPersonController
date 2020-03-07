@@ -11,6 +11,8 @@ public class MovingPlatform : MonoBehaviour
     Coroutine movePlatformCoroutine;
     MoveScript player;
 
+    List<Vector3> avgVelocity;
+
     int currentPoint;
     float distance = 0f;
     Vector3 offset;
@@ -19,41 +21,43 @@ public class MovingPlatform : MonoBehaviour
     {
         path = GetComponent<PathCreator>().path;
         currentPoint = 0;
+        avgVelocity = new List<Vector3>();
     }
 
-    private void LateUpdate()
+    private void FixedUpdate()
     {
-
-        if(player != null)
+        avgVelocity.Add(GetComponent<Rigidbody>().velocity);
+        if(avgVelocity.Count > 10)
         {
-            player.transform.position = transform.position + offset;
+            avgVelocity.RemoveAt(0);
         }
-    }
-
-    private void OnCollisionStay(Collision collision)
-    {
-        if (player != null)
+        Vector3 avg = new Vector3() ;
+        if (avgVelocity.Count > 0)
         {
-            if (collision.collider.GetComponent<MoveScript>() == player)
+            foreach (Vector3 velocity in avgVelocity)
             {
-                offset = player.transform.position - transform.position;
+                avg += velocity;
             }
+            avg /= avgVelocity.Count;
+        }
+        if (player)
+        {
+            player.GetComponent<Rigidbody>().velocity += avg;
         }
     }
 
-    private void OnCollisionEnter(Collision collision)
+    private void OnTriggerEnter(Collider collision)
     {
-        if(collision.collider.GetComponent<MoveScript>() && movePlatformCoroutine == null)
+        if(collision.GetComponent<MoveScript>() && movePlatformCoroutine == null)
         {
             movePlatformCoroutine = StartCoroutine(MovePlatformToEndOfSpline());
-            player = collision.collider.GetComponent<MoveScript>();
-            offset = player.transform.position - transform.position;
+            player = collision.GetComponent<MoveScript>();
         }
     }
 
-    private void OnCollisionExit(Collision collision)
+    private void OnTriggerExit(Collider collision)
     {
-        if (collision.collider.GetComponent<MoveScript>() == player)
+        if (collision.GetComponent<MoveScript>() == player)
         {
             player = null;
         }
@@ -72,7 +76,7 @@ public class MovingPlatform : MonoBehaviour
             {
                 Vector3[] pointsInSegment = path.GetPointsInSegment(currentPoint);
                 Vector3 test = CubicCurve(pointsInSegment[0], pointsInSegment[1], pointsInSegment[2], pointsInSegment[3], distance);
-                transform.position = test;
+                GetComponent<Rigidbody>().MovePosition(test);
             }
             distance += platformMoveSpeed;
             yield return 0;

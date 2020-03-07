@@ -51,9 +51,9 @@ public class AxisFollowCam : MonoBehaviour
         {
             averageVelocity += vec;
         }
-        if (previousFrameVelocities.Capacity > 0)
+        if (previousFrameVelocities.Count > 0)
         {
-            averageVelocity = averageVelocity / previousFrameVelocities.Capacity;
+            averageVelocity = averageVelocity / previousFrameVelocities.Count;
             Vector3 addVelocity = averageVelocity * 0.5f;
             addVelocity.y = 0;
             Vector3 newPos = playerPos + addVelocity;
