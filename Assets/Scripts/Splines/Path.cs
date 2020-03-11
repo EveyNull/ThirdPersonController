@@ -6,7 +6,7 @@ using UnityEngine;
 public class Path
 {
     [SerializeField]
-    List<Vector3> points;
+    public List<Vector3> points;
 
     public List<Vector3> anchorPoints;
 

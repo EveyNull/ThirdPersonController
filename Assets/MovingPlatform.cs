@@ -13,6 +13,8 @@ public class MovingPlatform : MonoBehaviour
 
     List<Vector3> avgVelocity;
 
+    bool addVelocity = true;
+
     int currentPoint;
     float distance = 0f;
     Vector3 offset;
@@ -20,68 +22,93 @@ public class MovingPlatform : MonoBehaviour
     private void Start()
     {
         path = GetComponent<PathCreator>().path;
+        path.points[0] = transform.position;
         currentPoint = 0;
         avgVelocity = new List<Vector3>();
     }
 
     private void FixedUpdate()
     {
-        avgVelocity.Add(GetComponent<Rigidbody>().velocity);
-        if(avgVelocity.Count > 10)
+        if (addVelocity)
         {
-            avgVelocity.RemoveAt(0);
-        }
-        Vector3 avg = new Vector3() ;
-        if (avgVelocity.Count > 0)
-        {
-            foreach (Vector3 velocity in avgVelocity)
+            avgVelocity.Add(GetComponent<Rigidbody>().velocity);
+            if (avgVelocity.Count > 10)
             {
-                avg += velocity;
+                avgVelocity.RemoveAt(0);
             }
-            avg /= avgVelocity.Count;
-        }
-        if (player)
-        {
-            player.GetComponent<Rigidbody>().velocity += avg;
+            Vector3 avg = new Vector3();
+            if (avgVelocity.Count > 0)
+            {
+                foreach (Vector3 velocity in avgVelocity)
+                {
+                    avg += velocity;
+                }
+                avg /= avgVelocity.Count;
+            }
+            if (player)
+            {
+                avg.y = 0f;
+                player.GetComponent<Rigidbody>().velocity += avg;
+
+            }
         }
     }
 
-    private void OnTriggerEnter(Collider collision)
+    private void OnCollisionEnter(Collision collision)
     {
-        if(collision.GetComponent<MoveScript>() && movePlatformCoroutine == null)
+        if(collision.collider.GetComponent<MoveScript>() && movePlatformCoroutine == null)
         {
             movePlatformCoroutine = StartCoroutine(MovePlatformToEndOfSpline());
-            player = collision.GetComponent<MoveScript>();
+            player = collision.collider.GetComponent<MoveScript>();
         }
+        if(movePlatformCoroutine != null)
+        {
+            player.allowJump = false;
+        }
+        addVelocity = true;
     }
 
     private void OnTriggerExit(Collider collision)
     {
         if (collision.GetComponent<MoveScript>() == player)
         {
+            player.allowJump = true;
             player = null;
+            addVelocity = false;
         }
     }
-
     IEnumerator MovePlatformToEndOfSpline()
     {
         while (currentPoint + 1 < path.anchorPoints.Count)
         {
-            if (transform.position == path.anchorPoints[currentPoint + 1])
+            Vector3[] pointsInSegment = path.GetPointsInSegment(currentPoint);
+            Vector3 nextPoint = GetComponent<Rigidbody>().position;
+            float f = distance;
+            for(; f <= 1f; f += 0.001f)
+            {
+                nextPoint = CubicCurve(pointsInSegment[0], pointsInSegment[1], pointsInSegment[2], pointsInSegment[3], f);
+                if (Vector3.Distance(GetComponent<Rigidbody>().position, nextPoint) >= platformMoveSpeed * Time.deltaTime)
+                {
+                    break;
+                }
+            }
+            if(f >= 1)
             {
                 distance = 0f;
                 currentPoint++;
             }
             else
             {
-                Vector3[] pointsInSegment = path.GetPointsInSegment(currentPoint);
-                Vector3 test = CubicCurve(pointsInSegment[0], pointsInSegment[1], pointsInSegment[2], pointsInSegment[3], distance);
-                GetComponent<Rigidbody>().MovePosition(test);
+                distance = f;
             }
-            distance += platformMoveSpeed;
+            GetComponent<Rigidbody>().MovePosition(nextPoint);
             yield return 0;
         }
         movePlatformCoroutine = null;
+        if (player)
+        {
+            player.allowJump = true;
+        }
     }
 
     Vector3 QuadraticCurve(Vector3 a, Vector3 b, Vector3 c, float t)
