@@ -8,6 +8,8 @@ public class MovingPlatform : MonoBehaviour
 
     private Path path;
 
+    Rigidbody platformRB;
+
     Coroutine movePlatformCoroutine;
     MoveScript player;
 
@@ -31,24 +33,11 @@ public class MovingPlatform : MonoBehaviour
     {
         if (addVelocity)
         {
-            avgVelocity.Add(GetComponent<Rigidbody>().velocity);
-            if (avgVelocity.Count > 10)
-            {
-                avgVelocity.RemoveAt(0);
-            }
-            Vector3 avg = new Vector3();
-            if (avgVelocity.Count > 0)
-            {
-                foreach (Vector3 velocity in avgVelocity)
-                {
-                    avg += velocity;
-                }
-                avg /= avgVelocity.Count;
-            }
             if (player)
             {
-                avg.y = 0f;
-                player.GetComponent<Rigidbody>().velocity += avg;
+                Vector3 velocity = GetComponent<Rigidbody>().velocity;
+                velocity.y = 0f;
+                player.GetComponent<Rigidbody>().velocity += velocity;
 
             }
         }
@@ -56,52 +45,55 @@ public class MovingPlatform : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if(collision.collider.GetComponent<MoveScript>() && movePlatformCoroutine == null)
+        if (movePlatformCoroutine == null)
         {
             movePlatformCoroutine = StartCoroutine(MovePlatformToEndOfSpline());
-            player = collision.collider.GetComponent<MoveScript>();
         }
-        if(movePlatformCoroutine != null)
+        if(collision.collider.GetComponent<MoveScript>())
         {
-            player.allowJump = false;
+            player = collision.collider.GetComponent<MoveScript>();
+            addVelocity = true;
         }
-        addVelocity = true;
     }
 
     private void OnTriggerExit(Collider collision)
     {
         if (collision.GetComponent<MoveScript>() == player)
         {
-            player.allowJump = true;
+            Vector3 playerVel = player.GetComponent<Rigidbody>().velocity;
+            playerVel.x = GetComponent<Rigidbody>().velocity.x;
+            playerVel.z = GetComponent<Rigidbody>().velocity.z;
+
+            player.GetComponent<Rigidbody>().velocity = playerVel;
+
             player = null;
             addVelocity = false;
         }
     }
+
     IEnumerator MovePlatformToEndOfSpline()
     {
+        distance = 0.1f;
         while (currentPoint + 1 < path.anchorPoints.Count)
         {
             Vector3[] pointsInSegment = path.GetPointsInSegment(currentPoint);
-            Vector3 nextPoint = GetComponent<Rigidbody>().position;
-            float f = distance;
-            for(; f <= 1f; f += 0.001f)
+            Vector3 nextPoint = CubicCurve(pointsInSegment[0], pointsInSegment[1], pointsInSegment[2], pointsInSegment[3], distance);
+
+            Vector3 moveTo = GetComponent<Rigidbody>().position + (nextPoint - GetComponent<Rigidbody>().position).normalized * Time.fixedDeltaTime * platformMoveSpeed;
+            
+            GetComponent<Rigidbody>().MovePosition(moveTo);
+
+            if(Vector3.Distance(GetComponent<Rigidbody>().position, nextPoint) <= 0.1f)
             {
-                nextPoint = CubicCurve(pointsInSegment[0], pointsInSegment[1], pointsInSegment[2], pointsInSegment[3], f);
-                if (Vector3.Distance(GetComponent<Rigidbody>().position, nextPoint) >= platformMoveSpeed * Time.deltaTime)
-                {
-                    break;
-                }
+                distance += 0.05f;
             }
-            if(f >= 1)
+
+            if (distance >= 1f)
             {
-                distance = 0f;
                 currentPoint++;
+                distance = 0f;
             }
-            else
-            {
-                distance = f;
-            }
-            GetComponent<Rigidbody>().MovePosition(nextPoint);
+
             yield return 0;
         }
         movePlatformCoroutine = null;
