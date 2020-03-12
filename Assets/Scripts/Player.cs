@@ -17,10 +17,9 @@ public class Player : Character
     // Update is called once per frame
     void Update()
     {
-        Debug.Log(health);
     }
 
-    public override void LoseHealth(float damage, Vector3 normal)
+    public override void LoseHealth(int damage, Vector3 normal)
     {
         base.LoseHealth(damage, normal);
         GetComponent<Rigidbody>().AddForce(Vector3.up, ForceMode.Impulse);
@@ -30,34 +29,53 @@ public class Player : Character
     {
         if(collision.collider.GetComponentInParent<Enemy>() && attacking)
         {
-            collision.collider.GetComponentInParent<Enemy>().LoseHealth(4f, collision.GetContact(0).normal);
+            collision.collider.GetComponentInParent<Enemy>().LoseHealth(4, transform.position);
         }
     }
 
-    protected override IEnumerator KnockBack(Vector3 normal)
+    protected override IEnumerator KnockBack(Vector3 otherPos)
     {
-        float timer = 1f;
         GetComponent<MoveScript>().animator.applyRootMotion = false;
         GetComponent<MoveScript>().animator.SetFloat("z", 0f);
-        GetComponent<MoveScript>().enabled = false;
-        normal = -normal;
-        normal.y = 0.2f;
-        GetComponent<Rigidbody>().AddForce(normal * 5f, ForceMode.Impulse);
+        GetComponent<MoveScript>().allowMovement = false;
+        float timer = 1f;
+        Vector3 offset = (transform.position - otherPos).normalized;
+        offset.y = 0.2f;
+        GetComponent<Rigidbody>().AddForce(offset * 10f, ForceMode.Impulse);
         while (timer > 0f)
         {
             timer -= Time.deltaTime;
             yield return 0;
         }
         GetComponent<MoveScript>().animator.applyRootMotion = true;
-        GetComponent<MoveScript>().enabled = true;
+        GetComponent<MoveScript>().allowMovement = true;
+
+        takeDamage = true;
     }
 
     public void SetAttacking(bool n_attacking)
     {
         attacking = n_attacking;
-        foreach(Collider collider in hitBoxes)
+        if(n_attacking)
         {
-            collider.enabled = n_attacking;
+            StartCoroutine(Attack());
+        }
+        else
+        {
+            foreach (Collider collider in hitBoxes)
+            {
+                collider.enabled = false;
+            }
+        }
+    }
+
+    IEnumerator Attack()
+    {
+        yield return new WaitForSeconds(0.3f);
+
+        foreach (Collider collider in hitBoxes)
+        {
+            collider.enabled = true;
         }
     }
 }

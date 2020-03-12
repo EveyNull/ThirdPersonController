@@ -8,7 +8,17 @@ public class Enemy : Character
     {
         if(collision.collider.GetComponentInParent<Player>() && !collision.collider.CompareTag("AttackHitBox"))
         {
-            collision.collider.GetComponentInParent<Player>().LoseHealth(2f, collision.GetContact(0).normal);
+            collision.collider.GetComponentInParent<Player>().LoseHealth(2, transform.position);
+        }
+    }
+
+    public override void LoseHealth(int damage, Vector3 collisionNormal)
+    {
+        base.LoseHealth(damage, collisionNormal);
+
+        if(health <= 0)
+        {
+            Destroy(gameObject);
         }
     }
 }
