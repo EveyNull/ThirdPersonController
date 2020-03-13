@@ -8,6 +8,8 @@ public class MoveScript : MonoBehaviour
     public Animator animator;
     public new Rigidbody rigidbody;
 
+    public LayerMask layerMask;
+
     public float jumpForce = 500f;
     public float fallMultiplier = 2.5f;
     public float lowJumpMultiplier = 2f;
@@ -123,7 +125,8 @@ public class MoveScript : MonoBehaviour
 
     bool AmGrounded()
     {
-        return Physics.OverlapBox(transform.position, GetComponent<BoxCollider>().size/2, transform.rotation, 1, QueryTriggerInteraction.Ignore).Length > 2;
+        bool test = Physics.OverlapBox(transform.position, GetComponent<BoxCollider>().size/2, transform.rotation, layerMask, QueryTriggerInteraction.Ignore).Length > 2;
+        return test;
     }
 
     bool CanJump()

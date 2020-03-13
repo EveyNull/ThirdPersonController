@@ -6,12 +6,18 @@ public class Character : MonoBehaviour
 {
     public bool takeDamage = true;
     public int health = 10;
+    public Color color;
+
+    private void Start()
+    {
+    }
 
     public virtual void LoseHealth(int damage, Vector3 otherPos)
     {
         if (takeDamage)
         {
             health -= damage;
+            StartCoroutine(DisplayDamage());
             StartCoroutine(KnockBack(otherPos));
             takeDamage = false;
         }
@@ -29,5 +35,12 @@ public class Character : MonoBehaviour
             yield return 0;
         }
         takeDamage = true;
+    }
+
+    protected IEnumerator DisplayDamage()
+    {
+        GetComponentInChildren<Renderer>().material.SetColor("_Color", Color.red);
+        yield return new WaitForSeconds(0.1f);
+        GetComponentInChildren<Renderer>().material.SetColor("_Color", color);
     }
 }
