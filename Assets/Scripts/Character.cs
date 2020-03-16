@@ -16,10 +16,10 @@ public class Character : MonoBehaviour
     {
         if (takeDamage)
         {
+            takeDamage = false;
             health -= damage;
             StartCoroutine(DisplayDamage());
             StartCoroutine(KnockBack(otherPos));
-            takeDamage = false;
         }
     }
 

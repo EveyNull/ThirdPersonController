@@ -6,30 +6,25 @@ public class MovingPlatform : MonoBehaviour
 {
     public float platformMoveSpeed = 0.01f;
 
-    private Path path;
-
-    Rigidbody platformRB;
-
-    Coroutine movePlatformCoroutine;
+    protected Path path;
+    
     MoveScript player;
-
-    List<Vector3> avgVelocity;
 
     bool addVelocity = true;
 
-    int currentPoint;
-    float distance = 0f;
-    Vector3 offset;
+    [SerializeField]
+    protected int currentPoint;
+    [SerializeField]
+    protected float distance = 0f;
 
-    private void Start()
+    protected virtual void Start()
     {
         path = GetComponent<PathCreator>().path;
         path.points[0] = transform.position;
         currentPoint = 0;
-        avgVelocity = new List<Vector3>();
     }
 
-    private void FixedUpdate()
+    protected virtual void FixedUpdate()
     {
         if (addVelocity)
         {
@@ -43,12 +38,8 @@ public class MovingPlatform : MonoBehaviour
         }
     }
 
-    private void OnCollisionEnter(Collision collision)
+    protected virtual void OnCollisionEnter(Collision collision)
     {
-        if (movePlatformCoroutine == null)
-        {
-            movePlatformCoroutine = StartCoroutine(MovePlatformToEndOfSpline());
-        }
         if(collision.collider.GetComponent<MoveScript>())
         {
             player = collision.collider.GetComponent<MoveScript>();
@@ -56,7 +47,7 @@ public class MovingPlatform : MonoBehaviour
         }
     }
 
-    private void OnTriggerExit(Collider collision)
+    protected virtual void OnTriggerExit(Collider collision)
     {
         if (collision.GetComponent<MoveScript>() == player)
         {
@@ -71,46 +62,14 @@ public class MovingPlatform : MonoBehaviour
         }
     }
 
-    IEnumerator MovePlatformToEndOfSpline()
-    {
-        distance = 0.1f;
-        while (currentPoint + 1 < path.anchorPoints.Count)
-        {
-            Vector3[] pointsInSegment = path.GetPointsInSegment(currentPoint);
-            Vector3 nextPoint = CubicCurve(pointsInSegment[0], pointsInSegment[1], pointsInSegment[2], pointsInSegment[3], distance);
-
-            Vector3 moveTo = GetComponent<Rigidbody>().position + (nextPoint - GetComponent<Rigidbody>().position).normalized * Time.fixedDeltaTime * platformMoveSpeed;
-            
-            GetComponent<Rigidbody>().MovePosition(moveTo);
-
-            if(Vector3.Distance(GetComponent<Rigidbody>().position, nextPoint) <= 0.1f)
-            {
-                distance += 0.05f;
-            }
-
-            if (distance >= 1f)
-            {
-                currentPoint++;
-                distance = 0f;
-            }
-
-            yield return 0;
-        }
-        movePlatformCoroutine = null;
-        if (player)
-        {
-            player.allowJump = true;
-        }
-    }
-
-    Vector3 QuadraticCurve(Vector3 a, Vector3 b, Vector3 c, float t)
+    protected Vector3 QuadraticCurve(Vector3 a, Vector3 b, Vector3 c, float t)
     {
         Vector3 p0 = Vector3.Lerp(a, b, t);
         Vector3 p1 = Vector3.Lerp(b, c, t);
         return Vector3.Lerp(p0, p1, t);
     }
 
-    Vector3 CubicCurve(Vector3 a, Vector3 b, Vector3 c, Vector3 d, float t)
+    protected Vector3 CubicCurve(Vector3 a, Vector3 b, Vector3 c, Vector3 d, float t)
     {
         Vector3 p0 = QuadraticCurve(a, b, c, t);
         Vector3 p1 = QuadraticCurve(b, c, d, t);

@@ -37,8 +37,9 @@ public class Slime : Enemy
                         subSlimes[i].GetComponent<Slime>().slimeSize = slimeSize - 1;
                         Vector3 normalizedOffset = (otherPos - transform.position).normalized;
                         Vector3 perpOffset = new Vector3(normalizedOffset.z, normalizedOffset.y, normalizedOffset.x);
-
-                        subSlimes[i].transform.position = transform.position + (i == 0 ? perpOffset : -perpOffset) * 3f;
+                        Vector3 newPos = transform.position + (i == 0 ? perpOffset : -perpOffset) * 3f;
+                        newPos.y = 3f;
+                        subSlimes[i].transform.position = newPos;
                         subSlimes[i].GetComponent<Slime>().health = Mathf.FloorToInt(startHealth / 2);
                         subSlimes[i].transform.localScale /= 3 - (slimeSize - 1);
                         Vector3 random = new Vector3(0, Random.Range(normalizedOffset.y - 30, normalizedOffset.y + 30), 0);
@@ -47,8 +48,8 @@ public class Slime : Enemy
                         subSlimes[i].GetComponent<Slime>().takeDamage = false;
                         subSlimes[i].GetComponent<Collider>().enabled = true;
                         Vector3 force = subSlimes[i].transform.forward;
-                        force.y = 2f;
-                        subSlimes[i].GetComponent<Rigidbody>().AddForce(force * 13f, ForceMode.Impulse);
+                        force.y = 3f;
+                        subSlimes[i].GetComponent<Rigidbody>().AddForce(force * 15f, ForceMode.Impulse);
                         subSlimes[i].layer = slimeInactiveLayer;
                     }
                 }
